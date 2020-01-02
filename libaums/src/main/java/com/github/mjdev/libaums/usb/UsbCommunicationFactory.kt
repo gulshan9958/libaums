@@ -4,6 +4,7 @@ import android.hardware.usb.UsbDeviceConnection
 import android.hardware.usb.UsbEndpoint
 import android.os.Build
 import android.util.Log
+import com.github.mjdev.libaums.UsbMassStorageDevice
 
 /**
  * Created by magnusja on 21/12/16.
@@ -21,10 +22,10 @@ object UsbCommunicationFactory {
         DEVICE_CONNECTION_SYNC
     }
 
-    fun createUsbCommunication(deviceConnection: UsbDeviceConnection, outEndpoint: UsbEndpoint, inEndpoint: UsbEndpoint): UsbCommunication {
+    fun createUsbCommunication(deviceConnection: UsbDeviceConnection, outEndpoint: UsbEndpoint, inEndpoint: UsbEndpoint, usbMassStorageDevice: UsbMassStorageDevice): UsbCommunication {
         return if (underlyingUsbCommunication == UnderlyingUsbCommunication.DEVICE_CONNECTION_SYNC) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                JellyBeanMr2Communication(deviceConnection, outEndpoint, inEndpoint)
+                JellyBeanMr2Communication(deviceConnection, outEndpoint, inEndpoint,usbMassStorageDevice)
             } else {
                 Log.i(TAG, "using workaround usb communication")
                 HoneyCombMr1Communication(deviceConnection, outEndpoint, inEndpoint)

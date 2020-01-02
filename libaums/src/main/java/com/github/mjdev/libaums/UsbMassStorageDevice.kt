@@ -12,7 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 
 package com.github.mjdev.libaums
@@ -131,7 +131,7 @@ private constructor(private val usbManager: UsbManager,
             throw IOException("could not claim interface!")
         }
 
-        val communication = UsbCommunicationFactory.createUsbCommunication(deviceConnection, outEndpoint, inEndpoint)
+        val communication = UsbCommunicationFactory.createUsbCommunication(deviceConnection, outEndpoint, inEndpoint, this)
         val maxLun = ByteArray(1)
         deviceConnection.controlTransfer(161, 254, 0, usbInterface.id, maxLun, 1, 5000)
         Log.i(TAG, "MAX LUN " + maxLun[0].toInt())
@@ -280,5 +280,28 @@ private constructor(private val usbManager: UsbManager,
                     .flatten()
                     .toTypedArray()
         }
+    }
+
+
+    @Synchronized
+    fun resetInterface() {
+        Log.e(TAG, "Reset USB interface")
+        //deviceConnection.controlTransfer(0x21, 0x22, 0x1, 0, null, 0, 0);
+        val bArr = null//ByteArray(2)
+        if (deviceConnection.controlTransfer(33, 255, 0, usbInterface.id, bArr, 0, 1000) < 0) {
+            //if (deviceConnection.controlTransfer(0x21, 0xFF, 0x0, usbInterface.id, bArr, 0, 1000) < 0) {
+            Log.e(TAG, "Unable to reset USB interface")
+        }
+        if (clearEndpointStall(inEndpoint) < 0) {
+            Log.e(TAG, "Can't clear inEndpoint endpoint!")
+        }
+        if (clearEndpointStall(outEndpoint) < 0) {
+            Log.e(TAG, "Can't clear outEndpoint endpoint!")
+        }
+    }
+
+    private fun clearEndpointStall(usbEndpoint: UsbEndpoint): Int {
+        val bArr = null//ByteArray(2)
+        return deviceConnection.controlTransfer(0x2, 0x1, 0x0, usbEndpoint.address, bArr, 0, 1000)
     }
 }

@@ -13,14 +13,8 @@ import com.github.mjdev.libaums.partition.PartitionTableEntry;
 import org.apache.log4j.Logger;
 import org.jnode.fs.FileSystemException;
 import org.jnode.fs.FileSystemType;
-import org.jnode.fs.exfat.ExFatFileSystemType;
-import org.jnode.fs.ext2.Ext2FileSystemType;
-import org.jnode.fs.hfs.HfsWrapperFileSystemType;
-import org.jnode.fs.hfsplus.HfsPlusFileSystemType;
-import org.jnode.fs.iso9660.ISO9660FileSystemType;
 import org.jnode.fs.jfat.FatFileSystemType;
 import org.jnode.fs.ntfs.NTFSFileSystemType;
-import org.jnode.fs.xfs.XfsFileSystemType;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -45,18 +39,15 @@ public class JavaFsFileSystemCreator implements FileSystemCreator {
         root.addAppender(logCatAppender);
 
         fsTypes.add(new NTFSFileSystemType());
-        fsTypes.add(new ExFatFileSystemType());
-
+        //fsTypes.add(new ExFatFileSystemType());
         fsTypes.add(new FatFileSystemType());
         fsTypes.add(new org.jnode.fs.fat.FatFileSystemType());
 
-        fsTypes.add(new HfsPlusFileSystemType());
-        fsTypes.add(new HfsWrapperFileSystemType());
-
-        fsTypes.add(new Ext2FileSystemType());
-        fsTypes.add(new XfsFileSystemType());
-
-        fsTypes.add(new ISO9660FileSystemType());
+        //fsTypes.add(new HfsPlusFileSystemType());
+        //fsTypes.add(new HfsWrapperFileSystemType());
+        //fsTypes.add(new Ext2FileSystemType());
+        //fsTypes.add(new XfsFileSystemType());
+        //fsTypes.add(new ISO9660FileSystemType());
     }
 
 
@@ -67,8 +58,8 @@ public class JavaFsFileSystemCreator implements FileSystemCreator {
 
         FSBlockDeviceWrapper wrapper = new FSBlockDeviceWrapper(blockDevice, entry);
 
-        for(FileSystemType type : fsTypes) {
-            if(type.supports(wrapper.getPartitionTableEntry(), buffer.array(), wrapper)) {
+        for (FileSystemType type : fsTypes) {
+            if (type.supports(wrapper.getPartitionTableEntry(), buffer.array(), wrapper)) {
                 try {
                     return new FileSystemWrapper(type.create(new DeviceWrapper(blockDevice, entry), false));
                 } catch (FileSystemException e) {

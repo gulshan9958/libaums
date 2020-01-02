@@ -21,6 +21,7 @@ import android.util.Log
 import com.github.mjdev.libaums.driver.BlockDeviceDriver
 import com.github.mjdev.libaums.driver.scsi.commands.*
 import com.github.mjdev.libaums.driver.scsi.commands.CommandBlockWrapper.Direction
+import com.github.mjdev.libaums.usb.JellyBeanMr2Communication
 import com.github.mjdev.libaums.usb.UsbCommunication
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -74,6 +75,7 @@ class ScsiBlockDevice(private val usbCommunication: UsbCommunication, private va
      * @see com.github.mjdev.libaums.driver.scsi.commands.ScsiReadCapacityResponse
      */
     @Throws(IOException::class)
+    @Synchronized
     override fun init() {
         val inBuffer = ByteBuffer.allocate(36)
         val inquiry = ScsiInquiry(inBuffer.array().size.toByte(), lun=lun)
@@ -133,8 +135,31 @@ class ScsiBlockDevice(private val usbCommunication: UsbCommunication, private va
      * @throws IOException
      * If something fails.
      */
+    val MAX_RETRY_COUNT = 3
+    private var mRetryCounter: Int = 0
     @Throws(IOException::class)
+    @Synchronized
     private fun transferCommand(command: CommandBlockWrapper, inBuffer: ByteBuffer): Boolean {
+        try {
+            var result = transferCommand(command, inBuffer, 0)
+            this.mRetryCounter = 0
+            return result
+        } catch (e: Exception) {
+            if (this.mRetryCounter < MAX_RETRY_COUNT) {
+                Log.e("TRANSFER_COMMAND_ERROR", "Error:", e)
+                this.mRetryCounter++
+                if (usbCommunication is JellyBeanMr2Communication) {
+                    usbCommunication.usbMassStorageDevice.resetInterface()
+                }
+                return transferCommand(command, inBuffer)
+            }
+            throw e;
+        }
+    }
+
+    @Throws(IOException::class)
+    @Synchronized
+    private fun transferCommand(command: CommandBlockWrapper, inBuffer: ByteBuffer, test: Int): Boolean {
         val outArray = outBuffer.array()
         Arrays.fill(outArray, 0.toByte())
 
