@@ -8,6 +8,7 @@ import android.annotation.TargetApi
 import android.hardware.usb.UsbDeviceConnection
 import android.hardware.usb.UsbEndpoint
 import android.os.Build
+import android.util.Log
 import com.github.mjdev.libaums.ErrNo
 import com.github.mjdev.libaums.UsbMassStorageDevice
 import java.io.IOException
@@ -25,13 +26,15 @@ internal class JellyBeanMr2Communication(private val deviceConnection: UsbDevice
 
     @Throws(IOException::class)
     override fun bulkOutTransfer(src: ByteBuffer): Int {
-        val length = getTransferLength(src);
+        val length = getTransferLength(src, outEndpoint.maxPacketSize)
         //val result = deviceConnection.bulkTransfer(outEndpoint,
         //        src.array(), src.position(), src.remaining(), UsbCommunication.TRANSFER_TIMEOUT)
         val result = deviceConnection.bulkTransfer(outEndpoint,
                 src.array(), src.position(), length, UsbCommunication.TRANSFER_TIMEOUT)
-        //Log.e("Communication",
-        //        "OUT TRANSFER bufferSize ${src.array().size}| startPos ${src.position()} | length $length | readSize $result")
+        if (UsbMassStorageDevice.DEBUG_MODE) {
+            Log.e("Communication",
+                    "OUT TRANSFER bufferSize ${src.array().size}| startPos ${src.position()} | length $length | readSize $result")
+        }
         if (result == -1) {
             throw IOException("Could not write to device, result == -1 errno " + ErrNo.errno + " " + ErrNo.errstr)
         }
@@ -45,11 +48,14 @@ internal class JellyBeanMr2Communication(private val deviceConnection: UsbDevice
         //val result = deviceConnection.bulkTransfer(inEndpoint,
         //        dest.array(), dest.position(), dest.remaining(), UsbCommunication.TRANSFER_TIMEOUT)
 
-        val length = getTransferLength(dest)
+        val length = getTransferLength(dest, inEndpoint.maxPacketSize)
         val result = deviceConnection.bulkTransfer(inEndpoint,
                 dest.array(), dest.position(), length, UsbCommunication.TRANSFER_TIMEOUT)
-        //Log.e("Communication",
-        //        "IN TRANSFER bufferSize ${dest.array().size}| startPos ${dest.position()} | length $length | readSize $result")
+        if (UsbMassStorageDevice.DEBUG_MODE) {
+            Log.e("Communication",
+                    "IN TRANSFER bufferSize ${dest.array().size}| startPos ${dest.position()} | length $length | readSize $result")
+        }
+
         if (result == -1) {
             throw IOException("Could not read from device, result == -1 errno " + ErrNo.errno + " " + ErrNo.errstr)
         }
@@ -58,8 +64,11 @@ internal class JellyBeanMr2Communication(private val deviceConnection: UsbDevice
         return result
     }
 
-    private fun getTransferLength(buffer: ByteBuffer): Int {
-        var blockSize = 16384
+    private fun getTransferLength(buffer: ByteBuffer, maxPacketSize: Int): Int {
+        var blockSize = 16384//Default max packet size.
+        if (maxPacketSize > 0) {
+            blockSize = maxPacketSize
+        }
         return when {
             //blockSize == 0 -> buffer.remaining()
             buffer.remaining() <= blockSize -> buffer.remaining()

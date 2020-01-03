@@ -197,6 +197,10 @@ private constructor(private val usbManager: UsbManager,
 
         private val TAG = UsbMassStorageDevice::class.java.simpleName
 
+        //@JvmStatic
+        @JvmField
+        var DEBUG_MODE: Boolean = false
+
         /**
          * subclass 6 means that the usb mass storage device implements the SCSI
          * transparent command set
