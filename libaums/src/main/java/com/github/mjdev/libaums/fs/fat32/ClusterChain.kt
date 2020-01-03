@@ -17,13 +17,11 @@
 
 package com.github.mjdev.libaums.fs.fat32
 
+import android.util.Log
+import com.github.mjdev.libaums.UsbMassStorageDevice
+import com.github.mjdev.libaums.driver.BlockDeviceDriver
 import java.io.IOException
 import java.nio.ByteBuffer
-
-import android.util.Log
-
-import com.github.mjdev.libaums.driver.BlockDeviceDriver
-import kotlin.math.max
 import kotlin.math.min
 
 /**
@@ -79,10 +77,12 @@ internal constructor(startCluster: Long, private val blockDevice: BlockDeviceDri
                 return
 
             chain = if (newNumberOfClusters > oldNumberOfClusters) {
-                Log.d(TAG, "grow chain")
+                if (UsbMassStorageDevice.DEBUG_MODE)
+                    Log.d(TAG, "grow chain")
                 fat.alloc(chain, newNumberOfClusters - oldNumberOfClusters)
             } else {
-                Log.d(TAG, "shrink chain")
+                if (UsbMassStorageDevice.DEBUG_MODE)
+                    Log.d(TAG, "shrink chain")
                 fat.free(chain, oldNumberOfClusters - newNumberOfClusters)
             }
         }
@@ -104,11 +104,13 @@ internal constructor(startCluster: Long, private val blockDevice: BlockDeviceDri
         }
 
     init {
-        Log.d(TAG, "Init a cluster chain, reading from FAT")
+        if (UsbMassStorageDevice.DEBUG_MODE)
+            Log.d(TAG, "Init a cluster chain, reading from FAT")
         chain = fat.getChain(startCluster)
         clusterSize = bootSector.bytesPerCluster.toLong()
         dataAreaOffset = bootSector.dataAreaOffset
-        Log.d(TAG, "Finished init of a cluster chain")
+        if (UsbMassStorageDevice.DEBUG_MODE)
+            Log.d(TAG, "Finished init of a cluster chain")
     }
 
     /**

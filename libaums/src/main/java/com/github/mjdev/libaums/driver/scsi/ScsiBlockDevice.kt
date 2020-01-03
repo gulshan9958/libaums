@@ -18,6 +18,7 @@
 package com.github.mjdev.libaums.driver.scsi
 
 import android.util.Log
+import com.github.mjdev.libaums.UsbMassStorageDevice
 import com.github.mjdev.libaums.driver.BlockDeviceDriver
 import com.github.mjdev.libaums.driver.scsi.commands.*
 import com.github.mjdev.libaums.driver.scsi.commands.CommandBlockWrapper.Direction
@@ -82,7 +83,8 @@ class ScsiBlockDevice(private val usbCommunication: UsbCommunication, private va
         transferCommand(inquiry, inBuffer)
         inBuffer.clear()
         val inquiryResponse = ScsiInquiryResponse.read(inBuffer)
-        Log.d(TAG, "inquiry response: $inquiryResponse")
+        if (UsbMassStorageDevice.DEBUG_MODE)
+            Log.d(TAG, "inquiry response: $inquiryResponse")
 
         if (inquiryResponse.peripheralQualifier.toInt() != 0 || inquiryResponse.peripheralDeviceType.toInt() != 0) {
             throw IOException("unsupported PeripheralQualifier or PeripheralDeviceType")
@@ -110,8 +112,10 @@ class ScsiBlockDevice(private val usbCommunication: UsbCommunication, private va
         blockSize = readCapacityResponse.blockLength
         lastBlockAddress = readCapacityResponse.logicalBlockAddress
 
-        Log.i(TAG, "Block size: $blockSize")
-        Log.i(TAG, "Last block address: $lastBlockAddress")
+        if (UsbMassStorageDevice.DEBUG_MODE) {
+            Log.i(TAG, "Block size: $blockSize")
+            Log.i(TAG, "Last block address: $lastBlockAddress")
+        }
     }
 
     /**
@@ -146,7 +150,8 @@ class ScsiBlockDevice(private val usbCommunication: UsbCommunication, private va
             return result
         } catch (e: Exception) {
             if (this.mRetryCounter < MAX_RETRY_COUNT) {
-                Log.e("TRANSFER_COMMAND_ERROR", "Error:", e)
+                if (UsbMassStorageDevice.DEBUG_MODE)
+                    Log.e("TRANSFER_COMMAND_ERROR", "Error:", e)
                 this.mRetryCounter++
                 if (usbCommunication is JellyBeanMr2Communication) {
                     usbCommunication.usbMassStorageDevice.resetInterface()

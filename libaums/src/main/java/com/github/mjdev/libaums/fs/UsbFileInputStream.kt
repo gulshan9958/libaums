@@ -18,6 +18,7 @@
 package com.github.mjdev.libaums.fs
 
 import android.util.Log
+import com.github.mjdev.libaums.UsbMassStorageDevice
 
 import java.io.IOException
 import java.io.InputStream
@@ -38,7 +39,8 @@ class UsbFileInputStream(private val file: UsbFile) : InputStream() {
 
     @Throws(IOException::class)
     override fun available(): Int {
-        Log.d(TAG, "available")
+        if (UsbMassStorageDevice.DEBUG_MODE)
+            Log.d(TAG, "available")
         // return 0, because we always block
         return 0
     }

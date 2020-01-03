@@ -18,14 +18,13 @@
 package com.github.mjdev.libaums.fs.fat32
 
 import android.util.Log
-
-import java.io.IOException
-import java.nio.ByteBuffer
-
+import com.github.mjdev.libaums.UsbMassStorageDevice
 import com.github.mjdev.libaums.driver.BlockDeviceDriver
 import com.github.mjdev.libaums.fs.FileSystem
 import com.github.mjdev.libaums.fs.UsbFile
 import com.github.mjdev.libaums.partition.PartitionTypes
+import java.io.IOException
+import java.nio.ByteBuffer
 import java.util.*
 
 /**
@@ -91,7 +90,8 @@ private constructor(blockDevice: BlockDeviceDriver, first512Bytes: ByteBuffer) :
         fat = FAT(blockDevice, bootSector, fsInfoStructure)
         rootDirectory = FatDirectory.readRoot(this, blockDevice, fat, bootSector)
 
-        Log.d(TAG, bootSector.toString())
+        if (UsbMassStorageDevice.DEBUG_MODE)
+            Log.d(TAG, bootSector.toString())
     }
 
     companion object {

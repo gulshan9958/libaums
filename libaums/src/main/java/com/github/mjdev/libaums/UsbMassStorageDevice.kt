@@ -122,7 +122,8 @@ private constructor(private val usbManager: UsbManager,
      */
     @Throws(IOException::class)
     private fun setupDevice() {
-        Log.d(TAG, "setup device")
+        if (UsbMassStorageDevice.DEBUG_MODE)
+            Log.d(TAG, "setup device")
         deviceConnection = usbManager.openDevice(usbDevice)
                 ?: throw IOException("deviceConnection is null!")
 
@@ -134,7 +135,8 @@ private constructor(private val usbManager: UsbManager,
         val communication = UsbCommunicationFactory.createUsbCommunication(deviceConnection, outEndpoint, inEndpoint, this)
         val maxLun = ByteArray(1)
         deviceConnection.controlTransfer(161, 254, 0, usbInterface.id, maxLun, 1, 5000)
-        Log.i(TAG, "MAX LUN " + maxLun[0].toInt())
+        if (UsbMassStorageDevice.DEBUG_MODE)
+            Log.i(TAG, "MAX LUN " + maxLun[0].toInt())
 
         this.partitions = (0..maxLun[0])
                 .map { lun ->
@@ -180,14 +182,16 @@ private constructor(private val usbManager: UsbManager,
      * or write from or to the partitions returned by [.getPartitions].
      */
     fun close() {
-        Log.d(TAG, "close device")
+        if (UsbMassStorageDevice.DEBUG_MODE)
+            Log.d(TAG, "close device")
 
         if (!::deviceConnection.isInitialized)
             return
 
         val release = deviceConnection.releaseInterface(usbInterface)
         if (!release) {
-            Log.e(TAG, "could not release interface!")
+            if (UsbMassStorageDevice.DEBUG_MODE)
+                Log.e(TAG, "could not release interface!")
         }
         deviceConnection.close()
         inited = false
@@ -226,7 +230,8 @@ private constructor(private val usbManager: UsbManager,
                                 && it.interfaceProtocol == INTERFACE_PROTOCOL
                     }
                     .map { usbInterface ->
-                        Log.i(TAG, "Found usb interface: $usbInterface")
+                        if (UsbMassStorageDevice.DEBUG_MODE)
+                            Log.i(TAG, "Found usb interface: $usbInterface")
 
                         // Every mass storage device has exactly two endpoints
                         // One IN and one OUT endpoint
@@ -289,18 +294,22 @@ private constructor(private val usbManager: UsbManager,
 
     @Synchronized
     fun resetInterface() {
-        Log.e(TAG, "Reset USB interface")
+        if (UsbMassStorageDevice.DEBUG_MODE)
+            Log.e(TAG, "Reset USB interface")
         //deviceConnection.controlTransfer(0x21, 0x22, 0x1, 0, null, 0, 0);
         val bArr = null//ByteArray(2)
         if (deviceConnection.controlTransfer(33, 255, 0, usbInterface.id, bArr, 0, 1000) < 0) {
             //if (deviceConnection.controlTransfer(0x21, 0xFF, 0x0, usbInterface.id, bArr, 0, 1000) < 0) {
-            Log.e(TAG, "Unable to reset USB interface")
+            if (UsbMassStorageDevice.DEBUG_MODE)
+                Log.e(TAG, "Unable to reset USB interface")
         }
         if (clearEndpointStall(inEndpoint) < 0) {
-            Log.e(TAG, "Can't clear inEndpoint endpoint!")
+            if (UsbMassStorageDevice.DEBUG_MODE)
+                Log.e(TAG, "Can't clear inEndpoint endpoint!")
         }
         if (clearEndpointStall(outEndpoint) < 0) {
-            Log.e(TAG, "Can't clear outEndpoint endpoint!")
+            if (UsbMassStorageDevice.DEBUG_MODE)
+                Log.e(TAG, "Can't clear outEndpoint endpoint!")
         }
     }
 

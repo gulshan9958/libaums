@@ -17,10 +17,10 @@
 
 package com.github.mjdev.libaums.driver.scsi.commands
 
+import android.util.Log
+import com.github.mjdev.libaums.UsbMassStorageDevice
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-
-import android.util.Log
 
 /**
  * This class represents the command status wrapper (CSW) in the SCSI
@@ -81,7 +81,8 @@ class CommandStatusWrapper {
 
             dCswSignature = buffer.int
             if (dCswSignature != D_CSW_SIGNATURE) {
-                Log.e(TAG, "unexpected dCSWSignature $dCswSignature")
+                if (UsbMassStorageDevice.DEBUG_MODE)
+                    Log.e(TAG, "unexpected dCSWSignature $dCswSignature")
             }
             dCswTag = buffer.int
             dCswDataResidue = buffer.int

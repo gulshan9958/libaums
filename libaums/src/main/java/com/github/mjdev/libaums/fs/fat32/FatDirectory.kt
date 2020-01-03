@@ -18,6 +18,7 @@
 package com.github.mjdev.libaums.fs.fat32
 
 import android.util.Log
+import com.github.mjdev.libaums.UsbMassStorageDevice
 import com.github.mjdev.libaums.driver.BlockDeviceDriver
 import com.github.mjdev.libaums.fs.AbstractUsbFile
 import com.github.mjdev.libaums.fs.UsbFile
@@ -172,10 +173,12 @@ internal constructor(
 
             if (e.isVolumeLabel) {
                 if (!isRoot) {
-                    Log.w(TAG, "volume label in non root dir!")
+                    if (UsbMassStorageDevice.DEBUG_MODE)
+                        Log.w(TAG, "volume label in non root dir!")
                 }
                 volumeLabel = e.volumeLabel
-                Log.d(TAG, "volume label: " + volumeLabel!!)
+                if (UsbMassStorageDevice.DEBUG_MODE)
+                    Log.d(TAG, "volume label: " + volumeLabel!!)
                 continue
             }
 
@@ -313,7 +316,8 @@ internal constructor(
         val newStartCluster = fat.alloc(arrayOf(), 1)[0]
         entry.startCluster = newStartCluster
 
-        Log.d(TAG, "adding entry: $entry with short name: $shortName")
+        if (UsbMassStorageDevice.DEBUG_MODE)
+            Log.d(TAG, "adding entry: $entry with short name: $shortName")
         addEntry(entry, entry.actualEntry)
         // write changes immediately to disk
         write()
@@ -338,7 +342,8 @@ internal constructor(
         val newStartCluster = fat.alloc(arrayOf(), 1)[0]
         entry.startCluster = newStartCluster
 
-        Log.d(TAG, "adding entry: $entry with short name: $shortName")
+        if (UsbMassStorageDevice.DEBUG_MODE)
+            Log.d(TAG, "adding entry: $entry with short name: $shortName")
         addEntry(entry, entry.actualEntry)
         // write changes immediately to disk
         write()

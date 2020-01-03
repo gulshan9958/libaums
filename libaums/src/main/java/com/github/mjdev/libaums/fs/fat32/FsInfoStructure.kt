@@ -17,13 +17,12 @@
 
 package com.github.mjdev.libaums.fs.fat32
 
+import android.util.Log
+import com.github.mjdev.libaums.UsbMassStorageDevice
+import com.github.mjdev.libaums.driver.BlockDeviceDriver
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-
-import android.util.Log
-
-import com.github.mjdev.libaums.driver.BlockDeviceDriver
 
 /**
  * This class holds information which shall support the [FAT]. For example
@@ -122,7 +121,8 @@ private constructor(private val blockDevice: BlockDeviceDriver, private val offs
      */
     @Throws(IOException::class)
     fun write() {
-        Log.d(TAG, "writing to device")
+        if (UsbMassStorageDevice.DEBUG_MODE)
+            Log.d(TAG, "writing to device")
         blockDevice.write(offset.toLong(), buffer)
         buffer.clear()
     }

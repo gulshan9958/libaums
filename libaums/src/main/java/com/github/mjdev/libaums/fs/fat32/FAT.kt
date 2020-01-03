@@ -17,14 +17,13 @@
 
 package com.github.mjdev.libaums.fs.fat32
 
+import android.util.Log
+import com.github.mjdev.libaums.UsbMassStorageDevice
+import com.github.mjdev.libaums.driver.BlockDeviceDriver
+import com.github.mjdev.libaums.util.LRUCache
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-
-import android.util.Log
-
-import com.github.mjdev.libaums.driver.BlockDeviceDriver
-import com.github.mjdev.libaums.util.LRUCache
 import java.util.*
 
 /**
@@ -65,14 +64,16 @@ internal constructor(private val blockDevice: BlockDeviceDriver, bootSector: Fat
         if (!bootSector.isFatMirrored) {
             val fatNumber = bootSector.validFat.toInt()
             fatNumbers = intArrayOf(fatNumber)
-            Log.i(TAG, "fat is not mirrored, fat $fatNumber is valid")
+            if (UsbMassStorageDevice.DEBUG_MODE)
+                Log.i(TAG, "fat is not mirrored, fat $fatNumber is valid")
         } else {
             val fatCount = bootSector.fatCount.toInt()
             fatNumbers = IntArray(fatCount)
             for (i in 0 until fatCount) {
                 fatNumbers[i] = i
             }
-            Log.i(TAG, "fat is mirrored, fat count: $fatCount")
+            if (UsbMassStorageDevice.DEBUG_MODE)
+                Log.i(TAG, "fat is mirrored, fat count: $fatCount")
         }
 
         fatOffset = LongArray(fatNumbers.size)
@@ -264,8 +265,8 @@ internal constructor(private val blockDevice: BlockDeviceDriver, bootSector: Fat
         fsInfoStructure.lastAllocatedClusterHint = currentCluster
         fsInfoStructure.decreaseClusterCount(originalNumberOfClusters.toLong())
         fsInfoStructure.write()
-
-        Log.i(TAG, "allocating clusters finished")
+        if (UsbMassStorageDevice.DEBUG_MODE)
+            Log.i(TAG, "allocating clusters finished")
 
         val arr = result.toTypedArray()
 
@@ -359,8 +360,8 @@ internal constructor(private val blockDevice: BlockDeviceDriver, bootSector: Fat
             buffer.clear()
             blockDevice.write(lastOffset, buffer)
         }
-
-        Log.i(TAG, "freed $numberOfClusters clusters")
+        if (UsbMassStorageDevice.DEBUG_MODE)
+            Log.i(TAG, "freed $numberOfClusters clusters")
 
         // increase the free cluster count by decreasing with a negative value
         fsInfoStructure.decreaseClusterCount((-numberOfClusters).toLong())
