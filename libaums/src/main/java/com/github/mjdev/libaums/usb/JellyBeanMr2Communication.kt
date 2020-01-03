@@ -66,9 +66,9 @@ internal class JellyBeanMr2Communication(private val deviceConnection: UsbDevice
 
     private fun getTransferLength(buffer: ByteBuffer, maxPacketSize: Int): Int {
         var blockSize = 16384//Default max packet size.
-        if (maxPacketSize > 0) {
+        /*if (maxPacketSize > 0) {
             blockSize = maxPacketSize
-        }
+        }*/
         return when {
             //blockSize == 0 -> buffer.remaining()
             buffer.remaining() <= blockSize -> buffer.remaining()
